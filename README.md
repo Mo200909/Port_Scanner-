@@ -1,66 +1,39 @@
-# Port_Scanner-
-
 # Port Scanner
 
-A multi-threaded Python tool that scans network ports and identifies open services.
+A multi-threaded Python port scanner. You give it a host and a port range, and it tells you which ports are open and what's likely running on them.
 
-## What It Does
+## How it works
 
-Scans a target host for open ports using 10 concurrent threads. Shows which ports are open and what services run on them (SSH, HTTP, HTTPS, DNS, etc.).
+- Uses 10 threads pulling from a shared, thread-safe queue so ports get scanned in parallel instead of one at a time
+- Resolves the hostname to an IP first
+- Checks each port with a raw socket connection (1-second timeout)
+- Matches open ports against a dictionary of common services (FTP, SSH, HTTP, DNS, MySQL, etc.)
+- Prints a summary of everything it found once all threads finish
 
-## How to Use
-
-```bash
-python Port_Scanner.py
-
-Enter Target Host: 8.8.8.8
-Enter Target Ports (e.g., 1-1000): 1-100
-```
-
-**Output:**
-```
-Port 53 is open (DNS)
-```
-
-## Features
-
-- **Multi-threaded** — 10 concurrent threads for speed
-- **Service mapping** — Identifies common ports (22=SSH, 80=HTTP, 443=HTTPS, etc.)
-- **Hostname resolution** — Works with domain names or IPs
-- **Clean output** — Shows summary of results
-
-## How It Works
-
-1. Takes the target host and port range from the user
-2. Resolves hostname to IP address
-3. Uses a thread-safe queue to distribute ports to 10 worker threads
-4. Each thread tests connection to a port (1-second timeout)
-5. Open ports are logged with service names
-6. Displays an organized summary
-
-## Technical Details
-
-- **Language:** Python 3.6+
-- **Libraries:** socket, threading, queue (standard library only)
-- **Threading:** 10 worker threads pull from the queue
-- **Connection:** Uses `socket.connect_ex()` for non-blocking checks
-- **Performance:** ~1000 ports in ~100 seconds
-
-## Testing
-
-Safe public servers to test:
-- `8.8.8.8` (Google DNS) — Port 53 should be open
-- `1.1.1.1` (Cloudflare) — Port 53 should be open
-- `google.com` — Ports 80, 443 should be open
-
-## Code Structure
+## Run it
 
 ```
-SERVICE_PORTS dict    → Maps ports to service names
-scan_ports()          → Worker thread function
-main()                → User input and thread management
+python port_scanner.py
 ```
 
-## Legal Note
+Then enter a target host and a port range like `1-1000` when prompted.
 
-Only scan systems you own or have permission to test.
+## Example runs
+
+Scanned `8.8.8.8` (Google DNS) — port 53 came back open and correctly identified as DNS.
+
+Scanned `127.0.0.1` (localhost) — port 135 came back open, labeled "Unknown" since it's not in the service dictionary.
+
+## Known services it recognizes
+
+FTP, SSH, Telnet, SMTP, DNS, HTTP, IMAP, HTTPS, MySQL, PostgreSQL, VNC, HTTP-Alt, HTTPS-Alt
+
+## Built with
+
+- Python 3
+- `socket` for the actual connections
+- `threading` + `queue` for running scans in parallel
+
+## Author
+
+Mofolorunsho Adeleke
